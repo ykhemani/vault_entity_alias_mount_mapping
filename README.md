@@ -7,9 +7,13 @@ Install the Python [hvac](https://hvac.readthedocs.io/en/stable/index.html) if i
 
 Authenticate with Vault and set your `VAULT_ADDR` and `VAULT_TOKEN` environment variables. You will need a policy that enables you to list and read identity data attached to your Vault token.
 
+```
+python3 vault_entity_alias_mount_mapping.py
+```
+
 ## Example Output:
 ```
-$ ./vault_entity_alias_mount_mapping.py 
+$ python3 vault_entity_alias_mount_mapping.py 
 2022-06-26 01:28:36 UTC: Starting vault_entity_alias_mount_mapping.py
 2022-06-26 01:28:36 UTC: vault_addr: https://vault.example.com:8200
 Namespace: root
