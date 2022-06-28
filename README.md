@@ -13,6 +13,7 @@ Authenticate with Vault and set your `VAULT_ADDR` and `VAULT_TOKEN` environment 
 Optionally set your `VAULT_NAMESPACE` environment variable to authenticate against the specified namespace.
 
 ```
+pip3 install -r requirements.txt
 python3 vault_entity_alias_mount_mapping.py
 ```
 
