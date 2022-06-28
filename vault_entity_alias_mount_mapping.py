@@ -15,6 +15,7 @@ urllib3.disable_warnings()
 
 def get_entity_list(client):
   try:
+    print("Entities:")
     list_entities_response = client.secrets.identity.list_entities()
     entity_ids = list_entities_response['data']['keys']
 
@@ -38,55 +39,85 @@ def get_entity_list(client):
       print('')
 
   except:
-    logging.error("[ERROR]: Unable to get entities.")
+    pass
 
-if __name__ == '__main__':
-  # logging
-  format = "%(asctime)s: %(message)s"
-  date_format = "%Y-%m-%d %H:%M:%S %Z"
-  logging.basicConfig(format=format, level=logging.INFO, datefmt=date_format)
-  logging.info("Starting %s", path.basename(__file__))
-
-  # config
-  try:
-    vault_addr = environ['VAULT_ADDR']
-    logging.info("vault_addr: %s", vault_addr)
-  except KeyError:
-    logging.error('[error]: `VAULT_ADDR` environment variable not set.')
-    sys.exit(1)
-
-  try:
-    vault_token = environ['VAULT_TOKEN']
-    #logging.debug("vault_token: %s", vault_token)
-  except KeyError:
-    logging.error('[error]: `VAULT_TOKEN` environment variable not set.')
-    sys.exit(1)
-
-  # Vault Client
-  client = hvac.Client(
-    url = vault_addr,
-    token = vault_token
-  )
-
-  print("Namespace: root\nEntities:")
-  get_entity_list(client)
   print("------------------------------------------------------------------------")
 
+def get_namespaces(client):
   # get namespaces
   try:
     list_namespaces_response = client.sys.list_namespaces()
     namespaces = list_namespaces_response['data']['key_info']
-
-    for namespace in namespaces:
-      print("Namespace: {namespace}".format(namespace=namespace))
-      print("Entities: ")
-      ns_client = hvac.Client(
-        url = vault_addr,
-        token = vault_token,
-        namespace = namespace
-      )
-      get_entity_list(ns_client)
-      print("------------------------------------------------------------------------")
+    return namespaces
   except:
-    logging.error("[ERROR]: Unable to list namespaces.")
+    logging.debug("Unable to list namespaces.")
 
+#if __name__ == '__main__':
+
+# logging
+format = "%(asctime)s: %(message)s"
+date_format = "%Y-%m-%d %H:%M:%S %Z"
+logging.basicConfig(format=format, level=logging.INFO, datefmt=date_format)
+logging.info("Starting %s", path.basename(__file__))
+
+# config
+try:
+  vault_addr = environ['VAULT_ADDR']
+  logging.info("vault_addr: %s", vault_addr)
+except KeyError:
+  logging.error('[error]: `VAULT_ADDR` environment variable not set.')
+  sys.exit(1)
+
+try:
+  vault_token = environ['VAULT_TOKEN']
+  #logging.debug("vault_token: %s", vault_token)
+except KeyError:
+  logging.error('[error]: `VAULT_TOKEN` environment variable not set.')
+  sys.exit(1)
+
+try:
+  namespace = environ['VAULT_NAMESPACE']
+  logging.info("namespace: %s", namespace)
+except KeyError:
+  logging.debug("VAULT_NAMESPACE isn't set.")
+  namespace = None
+
+# Vault Client
+try:
+  client = hvac.Client(
+    url = vault_addr,
+    token = vault_token,
+    namespace = namespace,
+  )
+except:
+  logging.error("Unable to connect to Vault cluster %s", vault_addr)
+  sys.exit(1)
+
+namespaces = [namespace]
+
+# get all child namespaces in this namespace and list any entities in that namespace
+while namespaces:
+  namespace = namespaces.pop(0)
+
+  client = hvac.Client(
+    url = vault_addr,
+    token = vault_token,
+    namespace = namespace,
+  )
+
+  print("Namespace: {namespace}".
+    format(
+      namespace = namespace,
+    )
+  )
+
+  # get entity list for namespace.
+  get_entity_list(client)
+
+  namespaces_in_current_namespace = get_namespaces(client)
+  
+  if namespaces_in_current_namespace is not None:
+    for key, value in namespaces_in_current_namespace.items():
+      child_namespace = value['path']
+      namespaces.append(child_namespace)
+      #print(child_namespace)
