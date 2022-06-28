@@ -3,6 +3,9 @@
 [vault_entity_alias_mount_mapping.py](vault_entity_alias_mount_mapping.py) uses the Python [hvac](https://hvac.readthedocs.io/en/stable/index.html) library to get a list of entities from [HashiCorp](https://hashicorp.com) [Vault](https://vaultproject.io). For each entity, the script lists the entity ID and name. For each alias to that entity, the script list the alias name, alias ID and mount path.
 
 ## Use:
+
+### Run with python
+
 Install the Python [hvac](https://hvac.readthedocs.io/en/stable/index.html) if it isn't already installed.
 
 Authenticate with Vault and set your `VAULT_ADDR` and `VAULT_TOKEN` environment variables. You will need a policy that enables you to list and read identity data attached to your Vault token for the specified namespace and all child namespaces.
@@ -13,7 +16,7 @@ Optionally set your `VAULT_NAMESPACE` environment variable to authenticate again
 python3 vault_entity_alias_mount_mapping.py
 ```
 
-## Example Output:
+#### Example Output:
 ```
 $ ./vault_entity_alias_mount_mapping.py 
 2022-06-28 18:20:42 UTC: Starting vault_entity_alias_mount_mapping.py
@@ -131,7 +134,7 @@ Entities:
 ------------------------------------------------------------------------
 ```
 
-### With a namespace
+#### With a namespace
 ```
 $ VAULT_NAMESPACE=ns1 ./vault_entity_alias_mount_mapping.py 
 2022-06-28 18:20:20 UTC: Starting vault_entity_alias_mount_mapping.py
@@ -176,6 +179,27 @@ Entities:
 Namespace: ns1/ns1-b/ns1-b-ii/
 Entities:
 ------------------------------------------------------------------------
+```
+
+### Run with docker
+
+You can also run this with Docker. For example:
+```
+docker run \
+  -e VAULT_ADDR=${VAULT_ADDR} \
+  -e VAULT_TOKEN=${VAULT_TOKEN} \
+  -e VAULT_NAMESPACE=${VAULT_NAMESPACE} \
+  --rm \
+  --name 'vault_entity_alias_mount_mapping' \
+  ykhemani/vault_entity_alias_mount_mapping:0.0.1
+```
+
+## Building Docker Image
+
+For example:
+
+```
+docker build -t ykhemani/vault_entity_alias_mount_mapping:0.0.1 .
 ```
 
 ---
