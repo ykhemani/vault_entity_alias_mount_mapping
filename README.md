@@ -5,7 +5,9 @@
 ## Use:
 Install the Python [hvac](https://hvac.readthedocs.io/en/stable/index.html) if it isn't already installed.
 
-Authenticate with Vault and set your `VAULT_ADDR` and `VAULT_TOKEN` environment variables. You will need a policy that enables you to list and read identity data attached to your Vault token.
+Authenticate with Vault and set your `VAULT_ADDR` and `VAULT_TOKEN` environment variables. You will need a policy that enables you to list and read identity data attached to your Vault token for the specified namespace and all child namespaces.
+
+Optionally set your `VAULT_NAMESPACE` environment variable to authenticate against the specified namespace.
 
 ```
 python3 vault_entity_alias_mount_mapping.py
@@ -13,10 +15,10 @@ python3 vault_entity_alias_mount_mapping.py
 
 ## Example Output:
 ```
-$ python3 vault_entity_alias_mount_mapping.py 
-2022-06-26 01:28:36 UTC: Starting vault_entity_alias_mount_mapping.py
-2022-06-26 01:28:36 UTC: vault_addr: https://vault.example.com:8200
-Namespace: root
+$ ./vault_entity_alias_mount_mapping.py 
+2022-06-28 18:20:42 UTC: Starting vault_entity_alias_mount_mapping.py
+2022-06-28 18:20:42 UTC: vault_addr: https://vault.example.com:8200
+Namespace: None
 Entities:
 Entity ID:	541345d0-1d00-1f06-2704-083685bf24a4
 Entity Name:	wildly-easy-burro
@@ -41,7 +43,7 @@ Entity Name:	firmly-secure-lemur
 
 ------------------------------------------------------------------------
 Namespace: ns1/
-Entities: 
+Entities:
 Entity ID:	32c7c515-728c-05a7-85d5-39812613416f
 Entity Name:	early-funny-foal
 			Entity Alias Name:	early-funny-foal
@@ -65,7 +67,7 @@ Entity Name:	overly-up-racer
 
 ------------------------------------------------------------------------
 Namespace: ns2/
-Entities: 
+Entities:
 Entity ID:	2d8948b6-e9ba-ac1f-d84a-017f708e861c
 Entity Name:	sadly-fine-gull
 			Entity Alias Name:	sadly-fine-gull
@@ -89,7 +91,7 @@ Entity Name:	entity_b9d105db
 
 ------------------------------------------------------------------------
 Namespace: ns3/
-Entities: 
+Entities:
 Entity ID:	6a02b17e-63c0-3f09-2c21-abd693107c84
 Entity Name:	safely-key-filly
 			Entity Alias Name:	safely-key-filly
@@ -111,6 +113,68 @@ Entity Name:	wholly-causal-trout
 			Mount Path:		auth/userpass/
 
 
+------------------------------------------------------------------------
+Namespace: ns1/ns1-a/
+Entities:
+------------------------------------------------------------------------
+Namespace: ns1/ns1-b/
+Entities:
+------------------------------------------------------------------------
+Namespace: ns1/ns1-c/
+Entities:
+------------------------------------------------------------------------
+Namespace: ns1/ns1-b/ns1-b-i/
+Entities:
+------------------------------------------------------------------------
+Namespace: ns1/ns1-b/ns1-b-ii/
+Entities:
+------------------------------------------------------------------------
+```
+
+### With a namespace
+```
+$ VAULT_NAMESPACE=ns1 ./vault_entity_alias_mount_mapping.py 
+2022-06-28 18:20:20 UTC: Starting vault_entity_alias_mount_mapping.py
+2022-06-28 18:20:20 UTC: vault_addr: https://vault.example.com:8200
+2022-06-28 18:20:20 UTC: namespace: ns1
+Namespace: ns1
+Entities:
+Entity ID:	32c7c515-728c-05a7-85d5-39812613416f
+Entity Name:	early-funny-foal
+			Entity Alias Name:	early-funny-foal
+			Entity Alias ID:	d843f0ff-5f2e-0a3d-28b0-93ae1c082c42
+			Mount Path:		auth/userpass/
+
+
+Entity ID:	66921d6f-c6fb-e715-6c75-cdcc8860d4ab
+Entity Name:	nearly-wise-magpie
+			Entity Alias Name:	nearly-wise-magpie
+			Entity Alias ID:	165b5ca7-6f19-ddbe-f472-a8bb1635f15d
+			Mount Path:		auth/userpass/
+
+
+Entity ID:	84283942-dc9a-6841-d659-ac3906daaa16
+Entity Name:	overly-up-racer
+			Entity Alias Name:	overly-up-racer
+			Entity Alias ID:	37547543-8a06-b30d-460e-033006728488
+			Mount Path:		auth/userpass/
+
+
+------------------------------------------------------------------------
+Namespace: ns1/ns1-a/
+Entities:
+------------------------------------------------------------------------
+Namespace: ns1/ns1-b/
+Entities:
+------------------------------------------------------------------------
+Namespace: ns1/ns1-c/
+Entities:
+------------------------------------------------------------------------
+Namespace: ns1/ns1-b/ns1-b-i/
+Entities:
+------------------------------------------------------------------------
+Namespace: ns1/ns1-b/ns1-b-ii/
+Entities:
 ------------------------------------------------------------------------
 ```
 
