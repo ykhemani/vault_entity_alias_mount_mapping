@@ -215,7 +215,7 @@ docker run \
   -e VAULT_NAMESPACE=${VAULT_NAMESPACE} \
   --rm \
   --name 'vault_entity_alias_mount_mapping' \
-  ykhemani/vault_entity_alias_mount_mapping:0.0.2
+  ykhemani/vault_entity_alias_mount_mapping:0.0.3
 ```
 
 ## Building Docker Image
@@ -223,7 +223,7 @@ docker run \
 For example:
 
 ```
-docker build -t ykhemani/vault_entity_alias_mount_mapping:0.0.2 .
+docker build -t ykhemani/vault_entity_alias_mount_mapping:0.0.3 .
 ```
 
 ---
