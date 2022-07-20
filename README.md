@@ -1,8 +1,12 @@
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ykhemani/vault_entity_alias_mount_mapping?style=plastic)
+
 # vault_entity_alias_mount_mapping
 
 [vault_entity_alias_mount_mapping.py](vault_entity_alias_mount_mapping.py) uses the [Python](https://www.python.org/) [hvac](https://hvac.readthedocs.io/en/stable/index.html) library to get a list of entities in your [HashiCorp](https://hashicorp.com) [Vault](https://vaultproject.io) cluster. 
 
-For each entity, vault_entity_alias_mount_mapping outputs the entity ID and name. For each alias of that entity, the script outputs the alias name, alias ID and mount path.
+For each entity, `vault_entity_alias_mount_mapping` outputs the entity ID and name. For each alias of that entity, the script outputs the alias name, alias ID and mount path.
+
+For clusters running Vault 1.11.0, `vault_entity_alias_mount_mapping` also indicates whether the entity has been active in the last year, and also when the entity was first active in that time period. Note that this relies on [Activity Export API](https://www.vaultproject.io/api-docs/system/internal-counters#activity-export), which was introduced in Vault 1.11.0 and is in Tech Preview.
 
 ## Use:
 
@@ -30,13 +34,13 @@ VAULT_ADDR=${VAULT_ADDR} \
 $ VAULT_ADDR=${VAULT_ADDR} \
 >   VAULT_TOKEN=${VAULT_TOKEN} \
 >   python3 ./vault_entity_alias_mount_mapping.py
-2022-06-29 12:11:22 UTC: Starting vault_entity_alias_mount_mapping.py
-2022-06-29 12:11:22 UTC: vault_addr: https://vault.example.com:8200
-2022-06-29 12:11:22 UTC: namespace: 
-Namespace: 
+2022-07-20 21:25:57 UTC: Starting vault_entity_alias_mount_mapping.py
+2022-07-20 21:25:57 UTC: vault_addr: https://vault.example.com:8200
+Namespace: None
 Entities:
 Entity ID:	541345d0-1d00-1f06-2704-083685bf24a4
 Entity Name:	wildly-easy-burro
+Active:		yes - first seen Wed, 20 Jul 2022 18:00:32
 			Entity Alias Name:	wildly-easy-burro
 			Entity Alias ID:	2ceece6c-1507-dfe1-73eb-2730387df873
 			Mount Path:		auth/userpass/
@@ -107,6 +111,7 @@ Entity Name:	lively-crack-shark
 
 Entity ID:	3bd62b2e-29ad-268f-74f6-19fbe920354c
 Entity Name:	entity_b9d105db
+Active:		yes - first seen Sun, 26 Jun 2022 01:28:29
 			Entity Alias Name:	daily-handy-shrimp
 			Entity Alias ID:	d288f725-16d4-ffce-6efd-6f8f081149b7
 			Mount Path:		auth/userpass/
@@ -164,39 +169,45 @@ $ VAULT_ADDR=${VAULT_ADDR} \
 >   VAULT_TOKEN=${VAULT_TOKEN} \
 >   VAULT_NAMESPACE=${VAULT_NAMESPACE} \
 >   python3 ./vault_entity_alias_mount_mapping.py
-2022-06-29 12:10:08 UTC: Starting vault_entity_alias_mount_mapping.py
-2022-06-29 12:10:08 UTC: vault_addr: https://vault.example.com:8200
-2022-06-29 12:10:08 UTC: namespace: ns1
-Namespace: ns1
+
+2022-07-20 21:26:39 UTC: Starting vault_entity_alias_mount_mapping.py
+2022-07-20 21:26:39 UTC: vault_addr: https://vault.example.com:8200
+2022-07-20 21:26:39 UTC: namespace: ns2
+Namespace: ns2
 Entities:
-Entity ID:	32c7c515-728c-05a7-85d5-39812613416f
-Entity Name:	early-funny-foal
-			Entity Alias Name:	early-funny-foal
-			Entity Alias ID:	d843f0ff-5f2e-0a3d-28b0-93ae1c082c42
+Entity ID:	2d8948b6-e9ba-ac1f-d84a-017f708e861c
+Entity Name:	sadly-fine-gull
+			Entity Alias Name:	sadly-fine-gull
+			Entity Alias ID:	bdf822e1-6712-f294-fad9-1a8d4ad19cb1
 			Mount Path:		auth/userpass/
-			Mount Accessor:		auth_userpass_deb23053
+			Mount Accessor:		auth_userpass_0ca79868
 			Mount Type:		userpass
 
-Entity ID:	66921d6f-c6fb-e715-6c75-cdcc8860d4ab
-Entity Name:	nearly-wise-magpie
-			Entity Alias Name:	nearly-wise-magpie
-			Entity Alias ID:	165b5ca7-6f19-ddbe-f472-a8bb1635f15d
+Entity ID:	3b5aceab-cde0-bd68-12f0-976ff380baeb
+Entity Name:	lively-crack-shark
+			Entity Alias Name:	lively-crack-shark
+			Entity Alias ID:	f06567bf-6353-8066-0281-a2f80b2568aa
 			Mount Path:		auth/userpass/
-			Mount Accessor:		auth_userpass_deb23053
+			Mount Accessor:		auth_userpass_0ca79868
 			Mount Type:		userpass
 
-Entity ID:	84283942-dc9a-6841-d659-ac3906daaa16
-Entity Name:	overly-up-racer
-			Entity Alias Name:	overly-up-racer
-			Entity Alias ID:	37547543-8a06-b30d-460e-033006728488
+Entity ID:	3bd62b2e-29ad-268f-74f6-19fbe920354c
+Entity Name:	entity_b9d105db
+Active:		yes - first seen Sun, 26 Jun 2022 01:28:29
+			Entity Alias Name:	daily-handy-shrimp
+			Entity Alias ID:	d288f725-16d4-ffce-6efd-6f8f081149b7
 			Mount Path:		auth/userpass/
-			Mount Accessor:		auth_userpass_deb23053
+			Mount Accessor:		auth_userpass_0ca79868
 			Mount Type:		userpass
+
+------------------------------------------------------------------------
 ```
 
-### Run with docker
+### Run with Docker
 
-You can also run this with Docker. For example:
+![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ykhemani/vault_entity_alias_mount_mapping?style=plastic)
+
+You can also run [vault_entity_alias_mount_mapping](https://hub.docker.com/r/ykhemani/vault_entity_alias_mount_mapping) with Docker. For example:
 ```
 docker run \
   -e VAULT_ADDR=${VAULT_ADDR} \
@@ -204,7 +215,7 @@ docker run \
   -e VAULT_NAMESPACE=${VAULT_NAMESPACE} \
   --rm \
   --name 'vault_entity_alias_mount_mapping' \
-  ykhemani/vault_entity_alias_mount_mapping:0.0.1
+  ykhemani/vault_entity_alias_mount_mapping:0.0.2
 ```
 
 ## Building Docker Image
@@ -212,7 +223,7 @@ docker run \
 For example:
 
 ```
-docker build -t ykhemani/vault_entity_alias_mount_mapping:0.0.1 .
+docker build -t ykhemani/vault_entity_alias_mount_mapping:0.0.2 .
 ```
 
 ---

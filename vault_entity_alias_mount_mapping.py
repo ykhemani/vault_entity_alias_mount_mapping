@@ -7,13 +7,15 @@
 
 import urllib3
 import hvac
-from os import environ, _exit, path
+import json
+import time
+from os import environ, _exit, path, times
 import sys
 import logging
 
 urllib3.disable_warnings()
 
-def get_entity_list(client):
+def get_entity_list(client, active_entities):
   try:
     print("Entities:")
     list_entities_response = client.secrets.identity.list_entities()
@@ -21,10 +23,15 @@ def get_entity_list(client):
 
     for entity_id in entity_ids:
       read_entity_response = client.secrets.identity.read_entity(
-            entity_id=entity_id,
+        entity_id=entity_id,
       )
       name = read_entity_response['data']['name']
       print("Entity ID:\t{id}\nEntity Name:\t{name}".format(id=entity_id, name=name))
+      if entity_id in active_entities:
+        timestamp = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(active_entities[entity_id]))
+        print("Active:\t\tyes - first seen " + timestamp)
+
+      #print("Entity ID:\t{id} {active}\nEntity Name:\t{name}".format(active=active, id=entity_id, name=name))
 
       entity_aliases = read_entity_response['data']['aliases']
 
@@ -39,7 +46,7 @@ def get_entity_list(client):
         print("\t\t\tMount Path:\t\t{mount_path}".format(mount_path=mount_path))
         print("\t\t\tMount Accessor:\t\t{mount_accessor}".format(mount_accessor=mount_accessor))
         print("\t\t\tMount Type:\t\t{mount_type}".format(mount_type=mount_type))
-      print('')
+        print()
 
   except:
     pass
@@ -54,6 +61,57 @@ def get_namespaces(client):
     return namespaces
   except:
     logging.debug("Unable to list namespaces.")
+
+def health_check(client):
+  # get Vault health
+  error = 0
+  try:
+    health = client.sys.read_health_status(method='GET')
+    if not health['initialized']:
+      logging.error('[error]: Vault is not initialized.')
+      error = 1
+    if health['sealed']:
+      logging.error('[error]: Vault is sealed.')
+      error = 1
+    if error == 1:
+      sys.exit(1)
+    return(health['version'])
+  except Exception as e:
+    logging.error(e)
+    logging.error('[error]: Unable to read Vault health.')
+    sys.exit(1)
+
+def get_active_entities(vault_addr, vault_token):
+  # experimental
+  # see https://www.vaultproject.io/api-docs/system/internal-counters#activity-export
+
+  #active_entities_list = []
+  active_entities_dict = {}
+
+  now = int(time.time())
+  start_time = now - (365 * 24 * 60 * 60) # one year ago
+
+  activity_url = vault_addr + '/v1/sys/internal/counters/activity/export?end_time=' + str(now) + '&start_time=' + str(start_time)
+  logging.debug("activity url: %s", activity_url)
+  
+  http = http = urllib3.PoolManager()
+  response = http.request(
+    'GET', 
+    activity_url,
+    headers = {
+      'X-Vault-Token' : vault_token
+    }
+  )
+  data = response.data.decode("utf-8")
+  for entity in data.splitlines():
+    logging.debug(entity)
+    entity_json = json.loads(entity)
+    entity_id = entity_json['client_id']
+    timestamp = entity_json['timestamp']
+    #active_entities_list.append(json.loads(entity)['client_id'])
+    active_entities_dict[entity_id] = timestamp
+  #return(active_entities_list)
+  return(active_entities_dict)
 
 if __name__ == '__main__':
 
@@ -96,6 +154,14 @@ if __name__ == '__main__':
     logging.error("Unable to connect to Vault cluster %s", vault_addr)
     sys.exit(1)
 
+  vault_version = health_check(
+    hvac.Client(url = vault_addr)
+  )
+  if vault_version.startswith('1.11'):
+    active_entities = get_active_entities(vault_addr, vault_token) # we don't pass namespace because the Activity Export API appears to only work on the root namespace.
+  else:
+    active_entities = {}
+
   namespaces = [namespace]
 
   # get all child namespaces in this namespace and list any entities in that namespace
@@ -115,7 +181,7 @@ if __name__ == '__main__':
     )
 
     # get entity list for namespace.
-    get_entity_list(client)
+    get_entity_list(client, active_entities)
 
     namespaces_in_current_namespace = get_namespaces(client)
     
