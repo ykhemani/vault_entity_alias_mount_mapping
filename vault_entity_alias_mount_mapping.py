@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/python3
+#!/usr/bin/env python3
 
 # For each entity in Vault, print entity ID and name.
 # For each entity alias, print entity alias name, id and mount.
@@ -12,46 +12,87 @@ import time
 from os import environ, _exit, path, times
 import sys
 import logging
+import argparse
+from EnvDefault import env_default
+
+version = '0.0.4'
 
 urllib3.disable_warnings()
 
+def append_output_text(next):
+  global output_text
+  output_text += next
+
+def append_output_list(next):
+  global output_list
+  output_list.append(next)
+
 def get_entity_list(client, active_entities):
+  global output_line
   try:
-    print("Entities:")
+    append_output_text("Entities:\n")
     list_entities_response = client.secrets.identity.list_entities()
     entity_ids = list_entities_response['data']['keys']
+    # entities list to return for json output
+    entities = []
 
     for entity_id in entity_ids:
       read_entity_response = client.secrets.identity.read_entity(
         entity_id=entity_id,
       )
       name = read_entity_response['data']['name']
-      print("Entity ID:\t{id}\nEntity Name:\t{name}".format(id=entity_id, name=name))
+      append_output_text("Entity ID:\t{id}\nEntity Name:\t{name}\n".format(id=entity_id, name=name))
+
       if entity_id in active_entities:
-        timestamp = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(active_entities[entity_id]))
-        print("Active:\t\tyes - first seen " + timestamp)
+        active = True
+        timestamp = time.strftime(date_format, time.gmtime(active_entities[entity_id]))
+        append_output_text("Active:\t\tyes - first seen " + timestamp + "\n")
+      else:
+        active = False
+        timestamp = None
 
       #print("Entity ID:\t{id} {active}\nEntity Name:\t{name}".format(active=active, id=entity_id, name=name))
 
       entity_aliases = read_entity_response['data']['aliases']
 
+      entity_aliases_list = []
       for entity_alias in entity_aliases:
         entity_alias_id = entity_alias['id']
         mount_path = entity_alias['mount_path']
         mount_accessor = entity_alias['mount_accessor']
         mount_type = entity_alias['mount_type']
         entity_alias_name = entity_alias['name']
-        print("\t\t\tEntity Alias Name:\t{entity_alias_name}".format(entity_alias_name=entity_alias_name))
-        print("\t\t\tEntity Alias ID:\t{entity_alias_id}".format(entity_alias_id=entity_alias_id))
-        print("\t\t\tMount Path:\t\t{mount_path}".format(mount_path=mount_path))
-        print("\t\t\tMount Accessor:\t\t{mount_accessor}".format(mount_accessor=mount_accessor))
-        print("\t\t\tMount Type:\t\t{mount_type}".format(mount_type=mount_type))
-        print()
+        append_output_text("\t\t\tEntity Alias Name:\t{entity_alias_name}\n".format(entity_alias_name=entity_alias_name))
+        append_output_text("\t\t\tEntity Alias ID:\t{entity_alias_id}\n".format(entity_alias_id=entity_alias_id))
+        append_output_text("\t\t\tMount Path:\t\t{mount_path}\n".format(mount_path=mount_path))
+        append_output_text("\t\t\tMount Accessor:\t\t{mount_accessor}\n".format(mount_accessor=mount_accessor))
+        append_output_text("\t\t\tMount Type:\t\t{mount_type}\n".format(mount_type=mount_type))
+        append_output_text("\n")
+        entity_aliases_list.append(
+          {
+            'entity_alias_id' : entity_alias_id,
+            'entity_alias_name' : entity_alias_name,
+            'mount_path' : mount_path,
+            'mount_accessor' : mount_accessor,
+            'mount_type' : mount_type
+          }
+        )
 
-  except:
+      entities.append(
+        {
+          'entity_id' : entity_id,
+          'entity_name' : name,
+          'active' : active,
+          'first_seen' : timestamp,
+          'entity_aliases' : entity_aliases_list
+        }
+      )
+
+    append_output_text("\n" + output_line + "\n")
+    return(entities)
+  except Exception as e:
+    logging.error(e)
     pass
-
-  print("------------------------------------------------------------------------")
 
 def get_namespaces(client):
   # get namespaces
@@ -94,7 +135,7 @@ def get_active_entities(vault_addr, vault_token):
   activity_url = vault_addr + '/v1/sys/internal/counters/activity/export?end_time=' + str(now) + '&start_time=' + str(start_time)
   logging.debug("activity url: %s", activity_url)
   
-  http = http = urllib3.PoolManager()
+  http = urllib3.PoolManager()
   response = http.request(
     'GET', 
     activity_url,
@@ -115,31 +156,98 @@ def get_active_entities(vault_addr, vault_token):
 
 if __name__ == '__main__':
 
+  parser = argparse.ArgumentParser(
+    description = 'vault_entity_alias_mount_mapping.py provides a list of entities in your HashiCorp Vault cluster.',
+  )
+
+  parser.add_argument(
+    '--vault_addr', '-vault_address', '--address', '-address',
+    action = env_default('VAULT_ADDR'),
+    help = 'Vault Address',
+    required = True,
+#    default = 'https://127.0.0.1:8200'
+  )
+
+  parser.add_argument(
+    '--vault_token', '-vault_token', '--token', '-token',
+    action = env_default('VAULT_TOKEN'),
+    help = 'Vault Token',
+    required = True
+  )
+
+  parser.add_argument(
+    '--vault_namespace', '-vault_namespace', '--namespace', '-namespace',
+    action = env_default('VAULT_NAMESPACE'),
+    help = 'Vault Namespace',
+    required = False,
+    default = None
+  )
+
+  parser.add_argument(
+    '--format', '-format',
+    action = env_default('FORMAT'),
+    help = 'Output format.',
+    required = True,
+    choices = ['json', 'text', 'csv'],
+    default = 'text'
+  )
+
+  parser.add_argument(
+    '--log_level', '-log_level',
+    action = env_default('LOG_LEVEL'),
+    help = 'Log level',
+    required = True,
+    choices = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
+    default = 'INFO'
+  )
+
+  parser.add_argument(
+    '--version', '-version', '-v',
+    help='Version',
+    action='version',
+    version=f"{version}"
+  )
+
+  args = parser.parse_args()
+
   # logging
   format = "%(asctime)s: %(message)s"
   date_format = "%Y-%m-%d %H:%M:%S %Z"
   logging.basicConfig(format=format, level=logging.INFO, datefmt=date_format)
+
+  if args.log_level == 'CRITICAL':
+    logging.getLogger().setLevel(logging.CRITICAL)
+  elif args.log_level == 'ERROR':
+    logging.getLogger().setLevel(logging.ERROR)
+  elif args.log_level == 'WARNING':
+    logging.getLogger().setLevel(logging.WARNING)
+  elif args.log_level == 'INFO':
+    logging.getLogger().setLevel(logging.INFO)
+  elif args.log_level == 'DEBUG':
+    logging.getLogger().setLevel(logging.DEBUG)
+
   logging.info("Starting %s", path.basename(__file__))
 
   # config
   try:
-    vault_addr = environ['VAULT_ADDR']
+    vault_addr = args.vault_addr
     logging.info("vault_addr: %s", vault_addr)
-  except KeyError:
-    logging.error('[error]: `VAULT_ADDR` environment variable not set.')
+  except Exception as e:
+    logging.error(e)
+    logging.error('[error]: Vault Address not specified.')
     sys.exit(1)
 
   try:
-    vault_token = environ['VAULT_TOKEN']
-    #logging.debug("vault_token: %s", vault_token)
-  except KeyError:
-    logging.error('[error]: `VAULT_TOKEN` environment variable not set.')
+    vault_token = args.vault_token
+  except Exception as e:
+    logging.error(e)
+    logging.error('[error]: Vault token not specified.')
     sys.exit(1)
 
   try:
-    namespace = environ['VAULT_NAMESPACE']
+    namespace = args.vault_namespace
     logging.info("namespace: %s", namespace)
-  except KeyError:
+  except Exception as e:
     logging.debug("VAULT_NAMESPACE isn't set.")
     namespace = None
 
@@ -162,31 +270,62 @@ if __name__ == '__main__':
   else:
     active_entities = {}
 
-  namespaces = [namespace]
+  #namespaces = [namespace]
+  # namespaces is a dict of namespace_id : namespace_name
+  namespaces = {'' : namespace} # we don't know the namespace id of the provided namespace, so we set it to empty.
+
+  # outputs
+  output_line = "--------------------------------------------------------------------------------\n"
+  output_text = ''
+  append_output_text(output_line + "Vault Entity Alias Mapping\n" + output_line + "\n")
+  output_csv  = ''
+  output_list = []
 
   # get all child namespaces in this namespace and list any entities in that namespace
-  while namespaces:
-    namespace = namespaces.pop(0)
+  while bool(namespaces):
+    #namespace = namespaces.pop(0)
+    #namespace_id = list(namespaces.keys()[0])
+    namespace_id = next(iter(namespaces))
+    namespace_name = namespaces[namespace_id]
+    del namespaces[namespace_id]
+    #print(namespaces)
 
     client = hvac.Client(
       url = vault_addr,
       token = vault_token,
-      namespace = namespace,
+      namespace = namespace_name,
     )
 
-    print("Namespace: {namespace}".
+    append_output_text("Namespace: {namespace}\n\n".
       format(
-        namespace = namespace,
+        namespace = namespace_name,
       )
     )
-
+    
     # get entity list for namespace.
-    get_entity_list(client, active_entities)
+    entities = get_entity_list(client, active_entities)
+    append_output_list(
+      {
+        'namespace_id' : namespace_id,
+        'namespace_name' : namespace_name,
+        'entities' : entities
+      }
+    )
 
     namespaces_in_current_namespace = get_namespaces(client)
     
     if namespaces_in_current_namespace is not None:
       for key, value in namespaces_in_current_namespace.items():
-        child_namespace = value['path']
-        namespaces.append(child_namespace)
+        child_namespace_id = value['id']
+        child_namespace_name = value['path']
+        #namespaces.append(child_namespace)
+        namespaces[child_namespace_id] = child_namespace_name
         #print(child_namespace)
+        #print("added " + child_namespace_id + " " + child_namespace_name)
+
+  if args.format == 'text':
+    print(output_text)
+  elif args.format == 'json':
+    print(json.dumps(output_list, indent = 2))
+  elif args.format == 'csv':
+    print("Support for CSV is coming soon. Plase use the text or json output options in the mean time.")
