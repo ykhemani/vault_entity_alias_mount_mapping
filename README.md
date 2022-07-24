@@ -249,6 +249,24 @@ $ ./vault_entity_alias_mount_mapping.py \
 ]
 ```
 
+#### Example CSV Output:
+```
+$ ./vault_entity_alias_mount_mapping.py -format=csv -log_level WARNING
+namespace_id,namespace_name,entity_id,entity_name,active,first_seen,entity_alias_id,entity_alias_name,mount_path,mount_accessor,mount_type
+,,541345d0-1d00-1f06-2704-083685bf24a4,wildly-easy-burro,True,2022-07-20 18:00:32 UTC,2ceece6c-1507-dfe1-73eb-2730387df873,wildly-easy-burro,auth/userpass/,auth_userpass_5b042f94,userpass
+,,c66f7bd3-55cb-6199-9c47-fb1df0244943,deeply-key-hippo,False,,7d49b101-9bb7-1461-5dfd-748f492aab49,deeply-key-hippo,auth/userpass/,auth_userpass_5b042f94,userpass
+,,caa311b9-ac0f-45ea-f72e-342e02560415,firmly-secure-lemur,False,,256f4ae3-0b84-924d-e25d-2823abaa74c0,firmly-secure-lemur,auth/userpass/,auth_userpass_5b042f94,userpass
+be5QT,ns1/,32c7c515-728c-05a7-85d5-39812613416f,early-funny-foal,False,,d843f0ff-5f2e-0a3d-28b0-93ae1c082c42,early-funny-foal,auth/userpass/,auth_userpass_deb23053,userpass
+be5QT,ns1/,66921d6f-c6fb-e715-6c75-cdcc8860d4ab,nearly-wise-magpie,False,,165b5ca7-6f19-ddbe-f472-a8bb1635f15d,nearly-wise-magpie,auth/userpass/,auth_userpass_deb23053,userpass
+be5QT,ns1/,84283942-dc9a-6841-d659-ac3906daaa16,overly-up-racer,False,,37547543-8a06-b30d-460e-033006728488,overly-up-racer,auth/userpass/,auth_userpass_deb23053,userpass
+bX58H,ns2/,2d8948b6-e9ba-ac1f-d84a-017f708e861c,sadly-fine-gull,False,,bdf822e1-6712-f294-fad9-1a8d4ad19cb1,sadly-fine-gull,auth/userpass/,auth_userpass_0ca79868,userpass
+bX58H,ns2/,3b5aceab-cde0-bd68-12f0-976ff380baeb,lively-crack-shark,False,,f06567bf-6353-8066-0281-a2f80b2568aa,lively-crack-shark,auth/userpass/,auth_userpass_0ca79868,userpass
+bX58H,ns2/,3bd62b2e-29ad-268f-74f6-19fbe920354c,entity_b9d105db,True,2022-06-26 01:28:29 UTC,d288f725-16d4-ffce-6efd-6f8f081149b7,daily-handy-shrimp,auth/userpass/,auth_userpass_0ca79868,userpass
+gzwYv,ns3/,6a02b17e-63c0-3f09-2c21-abd693107c84,safely-key-filly,False,,b96a92d3-e807-c40b-741d-516acbffc69d,safely-key-filly,auth/userpass/,auth_userpass_5557a4f5,userpass
+gzwYv,ns3/,996af036-01cb-47e8-68ce-1bb15a494b08,daily-strong-piglet,False,,5b9b49f7-9a34-492c-caca-41d76a30ed52,daily-strong-piglet,auth/userpass/,auth_userpass_5557a4f5,userpass
+gzwYv,ns3/,c6944630-af31-9ced-d485-44cd2a50a3be,wholly-causal-trout,False,,e10e04fb-ac73-7cc0-8bde-92a219c73682,wholly-causal-trout,auth/userpass/,auth_userpass_5557a4f5,userpass
+```
+
 ### Run with Docker
 
 ![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ykhemani/vault_entity_alias_mount_mapping?style=plastic)
