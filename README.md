@@ -30,26 +30,32 @@ pip3 install -r requirements.txt
 `vault_entity_alias_mount_mapping` may be run by specifying environment variables or by passing command line arguments. 
 
 ```
-$ ./vault_entity_alias_mount_mapping.py  -h
-usage: vault_entity_alias_mount_mapping.py [-h] [--vault_addr VAULT_ADDR] [--vault_token VAULT_TOKEN] [--vault_namespace VAULT_NAMESPACE]
-                                           [--format {json,text,csv}] [--log_level {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [--version]
+$ ./vault_entity_alias_mount_mapping.py -h
+usage: vault_entity_alias_mount_mapping.py 
+  [-h] [--vault_addr VAULT_ADDR]
+  [--vault_token VAULT_TOKEN]
+  [--vault_namespace VAULT_NAMESPACE]
+  [--format {json,text,csv}]
+  [--log_level {CRITICAL,ERROR,WARNING,INFO,DEBUG}]
+  [--version]
 
 vault_entity_alias_mount_mapping.py provides a list of entities in your HashiCorp Vault cluster.
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help
+    show this help message and exit
   --vault_addr VAULT_ADDR, -vault_address VAULT_ADDR, --address VAULT_ADDR, -address VAULT_ADDR
-                        Vault Address.
+    Vault Address.
   --vault_token VAULT_TOKEN, -vault_token VAULT_TOKEN, --token VAULT_TOKEN, -token VAULT_TOKEN
-                        Vault Token.
+    Vault Token.
   --vault_namespace VAULT_NAMESPACE, -vault_namespace VAULT_NAMESPACE, --namespace VAULT_NAMESPACE, -namespace VAULT_NAMESPACE
-                        Optional: Vault Namespace.
+    Optional: Vault Namespace.
   --format {json,text,csv}, -format {json,text,csv}
-                        Optional: Output format. Defaults to text.
+    Optional: Output format. Default: text.
   --log_level {CRITICAL,ERROR,WARNING,INFO,DEBUG}, -log_level {CRITICAL,ERROR,WARNING,INFO,DEBUG}
-                        Optional: Log level. Defaults to INFO.
+    Optional: Log level. Default: INFO.
   --version, -version, -v
-                        Show version.
+    Show version and exit.
 ```
 
 You must specify the Vault Address and Vault Token.

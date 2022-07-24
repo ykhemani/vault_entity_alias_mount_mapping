@@ -153,9 +153,17 @@ def get_active_entities(vault_addr, vault_token):
   #return(active_entities_list)
   return(active_entities_dict)
 
+help_indent_formatter = lambda prog: argparse.RawTextHelpFormatter(
+  prog,
+  max_help_position=4, 
+  indent_increment=2,
+  width=80
+)
+
 if __name__ == '__main__':
 
   parser = argparse.ArgumentParser(
+    formatter_class=help_indent_formatter,
     description = 'vault_entity_alias_mount_mapping.py provides a list of entities in your HashiCorp Vault cluster.',
   )
 
@@ -184,7 +192,7 @@ if __name__ == '__main__':
   parser.add_argument(
     '--format', '-format',
     action = env_default('FORMAT'),
-    help = 'Optional: Output format. Defaults to text.',
+    help = 'Optional: Output format. Default: text.',
     required = True,
     choices = ['json', 'text', 'csv'],
     default = 'text'
@@ -193,7 +201,7 @@ if __name__ == '__main__':
   parser.add_argument(
     '--log_level', '-log_level',
     action = env_default('LOG_LEVEL'),
-    help = 'Optional: Log level. Defaults to INFO.',
+    help = 'Optional: Log level. Default: INFO.',
     required = True,
     choices = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
     default = 'INFO'
@@ -201,7 +209,7 @@ if __name__ == '__main__':
 
   parser.add_argument(
     '--version', '-version', '-v',
-    help='Show version.',
+    help='Show version and exit.',
     action='version',
     version=f"{version}"
   )
