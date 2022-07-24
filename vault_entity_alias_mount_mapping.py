@@ -8,6 +8,7 @@
 import urllib3
 import hvac
 import json
+import csv
 import time
 from os import environ, _exit, path, times
 import sys
@@ -27,8 +28,9 @@ def append_output_list(next):
   global output_list
   output_list.append(next)
 
-def get_entity_list(client, active_entities):
+def get_entity_list(client, active_entities, namespace_id, namespace_name):
   global output_line
+  global output_csv
   try:
     append_output_text("Entities:\n")
     list_entities_response = client.secrets.identity.list_entities()
@@ -76,6 +78,24 @@ def get_entity_list(client, active_entities):
             'mount_accessor' : mount_accessor,
             'mount_type' : mount_type
           }
+        )
+
+        # csv format:
+        # namespace_id, namespace_name, entity_id, entity_name, active, first_seen, entity_alias_id, entity_alias_name, mount_path, mount_accessor, mount_type
+        output_csv.append(
+          [
+            namespace_id,
+            namespace_name,
+            entity_id,
+            name,
+            active,
+            timestamp,
+            entity_alias_id,
+            entity_alias_name,
+            mount_path,
+            mount_accessor,
+            mount_type
+          ]
         )
 
       entities.append(
@@ -283,8 +303,25 @@ if __name__ == '__main__':
   output_line = "--------------------------------------------------------------------------------\n"
   output_text = ''
   append_output_text(output_line + "Vault Entity Alias Mapping\n" + output_line + "\n")
-  output_csv  = ''
   output_list = []
+
+  # csv format:
+  # namespace_id, namespace_name, entity_id, entity_name, active, first_seen, entity_alias_id, entity_alias_name, mount_path, mount_accessor, mount_type
+  output_csv  = [
+    [
+      'namespace_id',
+      'namespace_name',
+      'entity_id',
+      'entity_name',
+      'active',
+      'first_seen',
+      'entity_alias_id',
+      'entity_alias_name',
+      'mount_path', 
+      'mount_accessor', 
+      'mount_type'
+    ]
+  ]
 
   # get all child namespaces in this namespace and list any entities in that namespace
   while bool(namespaces):
@@ -308,7 +345,7 @@ if __name__ == '__main__':
     )
     
     # get entity list for namespace.
-    entities = get_entity_list(client, active_entities)
+    entities = get_entity_list(client, active_entities, namespace_id, namespace_name)
     append_output_list(
       {
         'namespace_id' : namespace_id,
@@ -333,4 +370,5 @@ if __name__ == '__main__':
   elif args.format == 'json':
     print(json.dumps(output_list, indent = 2))
   elif args.format == 'csv':
-    print("Support for CSV is coming soon. Plase use the text or json output options in the mean time.")
+    csv_writer = csv.writer(sys.stdout)
+    csv_writer.writerows(output_csv)
