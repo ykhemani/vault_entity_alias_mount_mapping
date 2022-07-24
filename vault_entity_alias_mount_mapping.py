@@ -91,7 +91,6 @@ def get_entity_list(client, active_entities):
     append_output_text("\n" + output_line + "\n")
     return(entities)
   except Exception as e:
-    logging.error(e)
     pass
 
 def get_namespaces(client):
@@ -163,22 +162,21 @@ if __name__ == '__main__':
   parser.add_argument(
     '--vault_addr', '-vault_address', '--address', '-address',
     action = env_default('VAULT_ADDR'),
-    help = 'Vault Address',
+    help = 'Vault Address.',
     required = True,
-#    default = 'https://127.0.0.1:8200'
   )
 
   parser.add_argument(
     '--vault_token', '-vault_token', '--token', '-token',
     action = env_default('VAULT_TOKEN'),
-    help = 'Vault Token',
+    help = 'Vault Token.',
     required = True
   )
 
   parser.add_argument(
     '--vault_namespace', '-vault_namespace', '--namespace', '-namespace',
     action = env_default('VAULT_NAMESPACE'),
-    help = 'Vault Namespace',
+    help = 'Optional: Vault Namespace.',
     required = False,
     default = None
   )
@@ -186,7 +184,7 @@ if __name__ == '__main__':
   parser.add_argument(
     '--format', '-format',
     action = env_default('FORMAT'),
-    help = 'Output format.',
+    help = 'Optional: Output format. Defaults to text.',
     required = True,
     choices = ['json', 'text', 'csv'],
     default = 'text'
@@ -195,7 +193,7 @@ if __name__ == '__main__':
   parser.add_argument(
     '--log_level', '-log_level',
     action = env_default('LOG_LEVEL'),
-    help = 'Log level',
+    help = 'Optional: Log level. Defaults to INFO.',
     required = True,
     choices = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
     default = 'INFO'
@@ -203,7 +201,7 @@ if __name__ == '__main__':
 
   parser.add_argument(
     '--version', '-version', '-v',
-    help='Version',
+    help='Show version.',
     action='version',
     version=f"{version}"
   )
@@ -244,12 +242,11 @@ if __name__ == '__main__':
     logging.error('[error]: Vault token not specified.')
     sys.exit(1)
 
-  try:
-    namespace = args.vault_namespace
+  namespace = args.vault_namespace
+  if namespace is not None:
     logging.info("namespace: %s", namespace)
-  except Exception as e:
-    logging.debug("VAULT_NAMESPACE isn't set.")
-    namespace = None
+  else:
+    logging.debug("Vault namespace not specified.")
 
   # Vault Client
   try:
