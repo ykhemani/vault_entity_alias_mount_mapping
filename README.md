@@ -271,18 +271,33 @@ gzwYv,ns3/,c6944630-af31-9ced-d485-44cd2a50a3be,wholly-causal-trout,False,,e10e0
 
 ![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ykhemani/vault_entity_alias_mount_mapping?style=plastic)
 
-You can also run [vault_entity_alias_mount_mapping](https://hub.docker.com/r/ykhemani/vault_entity_alias_mount_mapping) with Docker. For example:
+You can also run [vault_entity_alias_mount_mapping](https://hub.docker.com/r/ykhemani/vault_entity_alias_mount_mapping) with Docker.
 ```
 docker run \
-  -e VAULT_ADDR=${VAULT_ADDR} \
-  -e VAULT_TOKEN=${VAULT_TOKEN} \
-  -e VAULT_NAMESPACE=${VAULT_NAMESPACE} \
+  -e VAULT_ADDR=${Vault Address} \
+  -e VAULT_TOKEN=${Vault Token} \
+  -e VAULT_NAMESPACE=${Vault Namespace} \
+	-e FORMAT=(csv|json|text) \
+	-e LOG_LEVEL=(CRITICAL,ERROR,WARNING,INFO,DEBUG) \
   --rm \
   --name 'vault_entity_alias_mount_mapping' \
   ykhemani/vault_entity_alias_mount_mapping:0.0.4
 ```
 
-## Building Docker Image
+For example:
+```
+docker run \
+  -e VAULT_ADDR=${VAULT_ADDR} \
+	-e VAULT_TOKEN=${VAULT_TOKEN} \
+	-e VAULT_NAMESPACE=${VAULT_NAMESPACE} \
+	-e FORMAT=json \
+	-e LOG_LEVEL=WARNING \
+	--rm \
+  --name 'vault_entity_alias_mount_mapping' \
+  ykhemani/vault_entity_alias_mount_mapping:0.0.4
+```
+
+#### Building Docker Image
 
 For example:
 
