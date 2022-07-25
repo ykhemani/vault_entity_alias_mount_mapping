@@ -288,11 +288,11 @@ For example:
 ```
 docker run \
   -e VAULT_ADDR=${VAULT_ADDR} \
-	-e VAULT_TOKEN=${VAULT_TOKEN} \
-	-e VAULT_NAMESPACE=${VAULT_NAMESPACE} \
-	-e FORMAT=json \
-	-e LOG_LEVEL=WARNING \
-	--rm \
+  -e VAULT_TOKEN=${VAULT_TOKEN} \
+  -e VAULT_NAMESPACE=${VAULT_NAMESPACE} \
+  -e FORMAT=json \
+  -e LOG_LEVEL=WARNING \
+  --rm \
   --name 'vault_entity_alias_mount_mapping' \
   ykhemani/vault_entity_alias_mount_mapping:0.0.4
 ```
