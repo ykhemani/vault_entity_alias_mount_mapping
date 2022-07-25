@@ -277,8 +277,8 @@ docker run \
   -e VAULT_ADDR=${Vault Address} \
   -e VAULT_TOKEN=${Vault Token} \
   -e VAULT_NAMESPACE=${Vault Namespace} \
-	-e FORMAT=(csv|json|text) \
-	-e LOG_LEVEL=(CRITICAL,ERROR,WARNING,INFO,DEBUG) \
+  -e FORMAT=(csv|json|text) \
+  -e LOG_LEVEL=(CRITICAL,ERROR,WARNING,INFO,DEBUG) \
   --rm \
   --name 'vault_entity_alias_mount_mapping' \
   ykhemani/vault_entity_alias_mount_mapping:0.0.4
