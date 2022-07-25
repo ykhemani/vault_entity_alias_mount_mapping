@@ -213,18 +213,17 @@ if __name__ == '__main__':
     '--format', '-format',
     action = env_default('FORMAT'),
     help = 'Optional: Output format. Default: text.',
-    required = True,
     choices = ['json', 'text', 'csv'],
-    default = 'text'
+    required = False,
+    default = None
   )
 
   parser.add_argument(
     '--log_level', '-log_level',
     action = env_default('LOG_LEVEL'),
     help = 'Optional: Log level. Default: INFO.',
-    required = True,
     choices = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
-    default = 'INFO'
+    required = False
   )
 
   parser.add_argument(
@@ -252,6 +251,7 @@ if __name__ == '__main__':
   elif args.log_level == 'DEBUG':
     logging.getLogger().setLevel(logging.DEBUG)
 
+  logging.debug("Log level set to %s", args.log_level)
   logging.info("Starting %s", path.basename(__file__))
 
   # config
@@ -365,10 +365,12 @@ if __name__ == '__main__':
         #print(child_namespace)
         #print("added " + child_namespace_id + " " + child_namespace_name)
 
-  if args.format == 'text':
-    print(output_text)
-  elif args.format == 'json':
+  if args.format == 'json':
     print(json.dumps(output_list, indent = 2))
   elif args.format == 'csv':
     csv_writer = csv.writer(sys.stdout)
     csv_writer.writerows(output_csv)
+  else: # elif args.format == 'text':
+    print(output_text)
+
+  sys.exit(0)
