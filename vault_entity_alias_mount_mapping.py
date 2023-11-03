@@ -14,9 +14,12 @@ from os import environ, _exit, path, times
 import sys
 import logging
 import argparse
+from looseversion import LooseVersion
 from EnvDefault import env_default
 
 version = '0.0.4'
+
+minimum_vault_version = "1.11"
 
 urllib3.disable_warnings()
 
@@ -290,7 +293,7 @@ if __name__ == '__main__':
   vault_version = health_check(
     hvac.Client(url = vault_addr)
   )
-  if vault_version.startswith('1.11'):
+  if vault_version >= LooseVersion(minimum_vault_version):
     active_entities = get_active_entities(vault_addr, vault_token) # we don't pass namespace because the Activity Export API appears to only work on the root namespace.
   else:
     active_entities = {}
