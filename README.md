@@ -6,7 +6,7 @@
 
 For each entity, `vault_entity_alias_mount_mapping` outputs the entity ID and name. For each alias of that entity, the script outputs the alias name, alias ID and mount path.
 
-For clusters running Vault 1.11.0, `vault_entity_alias_mount_mapping` also indicates whether the entity has been active in the last year, and also when the entity was first active in that time period. Note that this relies on [Activity Export API](https://www.vaultproject.io/api-docs/system/internal-counters#activity-export), which was introduced in Vault 1.11.0 and is presently in Tech Preview.
+For clusters running Vault 1.11.0 and later, `vault_entity_alias_mount_mapping` also indicates whether the entity has been active in the last year, and also when the entity was first active in that time period. Note that this relies on [Activity Export API](https://www.vaultproject.io/api-docs/system/internal-counters#activity-export), which was introduced in Vault 1.11.0 in Tech Preview.
 
 ## Use:
 
@@ -14,16 +14,19 @@ For clusters running Vault 1.11.0, `vault_entity_alias_mount_mapping` also indic
 
 #### Prerequisites
 
-To run with Python 3, install the Python [hvac](https://hvac.readthedocs.io/en/stable/index.html) module if it isn't already installed.
+To run with Python 3, install the following Python modules if they are not already installed:
+* [hvac](https://hvac.readthedocs.io/en/stable/index.html) 2.0.0
+* [looseversion]() 1.3.0
 
 ```
 pip3 install -r requirements.txt
 ```
 
 `vault_entity_alias_mount_mapping` has been tested with:
-* [Python](https://www.python.org/) 3.9.10
-* [hvac](https://hvac.readthedocs.io/en/stable/overview.html) 0.11.2
-* [HashiCorp](https://hashicorp.com/) [Vault](https://vaultproject.io) 1.11.0
+* [Python](https://www.python.org/) 3.11.5
+* [hvac](https://hvac.readthedocs.io/en/stable/overview.html) 2.0.0
+* [looseversion](https://pypi.org/project/looseversion/) 1.3.0
+* [HashiCorp](https://hashicorp.com/) [Vault](https://vaultproject.io) 1.15.3
 
 #### Usage:
 
@@ -31,17 +34,20 @@ pip3 install -r requirements.txt
 
 ```
 $ ./vault_entity_alias_mount_mapping.py -h
-usage: vault_entity_alias_mount_mapping.py 
-  [-h] [--vault_addr VAULT_ADDR]
-  [--vault_token VAULT_TOKEN]
-  [--vault_namespace VAULT_NAMESPACE]
-  [--format {json,text,csv}]
-  [--log_level {CRITICAL,ERROR,WARNING,INFO,DEBUG}]
-  [--version]
+usage: vault_entity_alias_mount_mapping.py [-h] [--vault_addr VAULT_ADDR]
+                                           [--vault_token VAULT_TOKEN]
+                                           [--vault_namespace VAULT_NAMESPACE]
+                                           [--output {json,text,csv}]
+                                           [--csv_file CSV_FILE]
+                                           [--json_file JSON_FILE]
+                                           [--text_file TEXT_FILE]
+                                           [--stdout | --no-stdout | -stdout]
+                                           [--log_level {CRITICAL,ERROR,WARNING,INFO,DEBUG}]
+                                           [--start_time {1y,2y,3y}] [--version]
 
 vault_entity_alias_mount_mapping.py provides a list of entities in your HashiCorp Vault cluster.
 
-optional arguments:
+options:
   -h, --help
     show this help message and exit
   --vault_addr VAULT_ADDR, -vault_address VAULT_ADDR, --address VAULT_ADDR, -address VAULT_ADDR
@@ -50,10 +56,20 @@ optional arguments:
     Vault Token.
   --vault_namespace VAULT_NAMESPACE, -vault_namespace VAULT_NAMESPACE, --namespace VAULT_NAMESPACE, -namespace VAULT_NAMESPACE
     Optional: Vault Namespace.
-  --format {json,text,csv}, -format {json,text,csv}
+  --output {json,text,csv}, -output {json,text,csv}
     Optional: Output format. Default: text.
+  --csv_file CSV_FILE, -csv_file CSV_FILE
+    Optional: CSV output file name.
+  --json_file JSON_FILE, -json_file JSON_FILE
+    Optional: JSON output file name.
+  --text_file TEXT_FILE, -text_file TEXT_FILE
+    Optional: text output file name.
+  --stdout, --no-stdout, -stdout
+    Optional: send output to STDOUT rather than to file
   --log_level {CRITICAL,ERROR,WARNING,INFO,DEBUG}, -log_level {CRITICAL,ERROR,WARNING,INFO,DEBUG}
     Optional: Log level. Default: INFO.
+  --start_time {1y,2y,3y}, -start_time {1y,2y,3y}
+    Optional: Start time in years from now. Default = 1y.
   --version, -version, -v
     Show version and exit.
 ```
@@ -277,11 +293,11 @@ docker run \
   -e VAULT_ADDR=${Vault Address} \
   -e VAULT_TOKEN=${Vault Token} \
   -e VAULT_NAMESPACE=${Vault Namespace} \
-  -e FORMAT=(csv|json|text) \
+  -e OUTPUT=(csv|json|text) \
   -e LOG_LEVEL=(CRITICAL,ERROR,WARNING,INFO,DEBUG) \
   --rm \
   --name 'vault_entity_alias_mount_mapping' \
-  ykhemani/vault_entity_alias_mount_mapping:0.0.4
+  ykhemani/vault_entity_alias_mount_mapping:0.0.5
 ```
 
 For example:
@@ -290,11 +306,11 @@ docker run \
   -e VAULT_ADDR=${VAULT_ADDR} \
   -e VAULT_TOKEN=${VAULT_TOKEN} \
   -e VAULT_NAMESPACE=${VAULT_NAMESPACE} \
-  -e FORMAT=json \
+  -e OUTPUT=json \
   -e LOG_LEVEL=WARNING \
   --rm \
   --name 'vault_entity_alias_mount_mapping' \
-  ykhemani/vault_entity_alias_mount_mapping:0.0.4
+  ykhemani/vault_entity_alias_mount_mapping:0.0.5
 ```
 
 #### Building Docker Image
@@ -302,7 +318,7 @@ docker run \
 For example:
 
 ```
-docker build -t ykhemani/vault_entity_alias_mount_mapping:0.0.4 .
+docker build -t ykhemani/vault_entity_alias_mount_mapping:0.0.5 .
 ```
 
 ---

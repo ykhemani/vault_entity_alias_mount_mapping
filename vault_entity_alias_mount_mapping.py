@@ -14,9 +14,14 @@ from os import environ, _exit, path, times
 import sys
 import logging
 import argparse
+from looseversion import LooseVersion
 from EnvDefault import env_default
 
-version = '0.0.4'
+version = '0.0.5'
+
+minimum_vault_version = "1.11"
+
+now = int(time.time())
 
 urllib3.disable_warnings()
 
@@ -59,11 +64,62 @@ def get_entity_list(client, active_entities, namespace_id, namespace_name):
 
       entity_aliases_list = []
       for entity_alias in entity_aliases:
-        entity_alias_id = entity_alias['id']
-        mount_path = entity_alias['mount_path']
-        mount_accessor = entity_alias['mount_accessor']
-        mount_type = entity_alias['mount_type']
-        entity_alias_name = entity_alias['name']
+        # from the work by [Jon Tomko](https://github.com/jtomk0)
+        try:
+          mount_type = entity_alias['mount_type']
+        except Exception as ex:
+          template = "An exception of type {0} occured. Arguments:\n{1!r}"
+          message = template.format(type(ex).__name__, ex.args)
+          logging.debug(message)
+
+          mount_type = '_NO_MOUNT_TYPE_'
+
+          pass
+
+        try:
+          mount_path = entity_alias['mount_path']
+        except Exception as ex:
+          template = "An exception of type {0} occured. Arguments:\n{1!r}"
+          message = template.format(type(ex).__name__, ex.args)
+          logging.debug(message)
+
+          mount_path = '_NO_MOUNT_PATH_'
+
+          pass
+
+        try:
+          entity_alias_id = entity_alias['id']
+        except Exception as ex:
+          template = "An exception of type {0} occured. Arguments:\n{1!r}"
+          message = template.format(type(ex).__name__, ex.args)
+          logging.debug(message)
+
+          entity_alias_id = '_NO_ENTITY_ALIAS_ID_'
+
+          pass
+
+        try:
+          mount_accessor = entity_alias['mount_accessor']
+        except Exception as ex:
+          template = "An exception of type {0} occured. Arguments:\n{1!r}"
+          message = template.format(type(ex).__name__, ex.args)
+          logging.debug(message)
+
+          mount_accessor = '_NO_MOUNT_ACCESSOR_'
+
+          pass
+
+        try:
+          entity_alias_name = entity_alias['name']
+        except Exception as ex:
+          template = "An exception of type {0} occured. Arguments:\n{1!r}"
+          message = template.format(type(ex).__name__, ex.args)
+          logging.debug(message)
+
+          entity_alias_name = '_NO_ENTITY_ALIAS_NAME_'
+
+          pass
+
         append_output_text("\t\t\tEntity Alias Name:\t{entity_alias_name}\n".format(entity_alias_name=entity_alias_name))
         append_output_text("\t\t\tEntity Alias ID:\t{entity_alias_id}\n".format(entity_alias_id=entity_alias_id))
         append_output_text("\t\t\tMount Path:\t\t{mount_path}\n".format(mount_path=mount_path))
@@ -145,11 +201,14 @@ def get_active_entities(vault_addr, vault_token):
   # experimental
   # see https://www.vaultproject.io/api-docs/system/internal-counters#activity-export
 
+  global now
+  global start_time
+  
   #active_entities_list = []
   active_entities_dict = {}
 
-  now = int(time.time())
-  start_time = now - (365 * 24 * 60 * 60) # one year ago
+  # now = int(time.time())
+  # start_time = now - (365 * 24 * 60 * 60) # one year ago
 
   activity_url = vault_addr + '/v1/sys/internal/counters/activity/export?end_time=' + str(now) + '&start_time=' + str(start_time)
   logging.debug("activity url: %s", activity_url)
@@ -210,12 +269,44 @@ if __name__ == '__main__':
   )
 
   parser.add_argument(
-    '--format', '-format',
-    action = env_default('FORMAT'),
+    '--output', '-output',
+    action = env_default('OUTPUT'),
     help = 'Optional: Output format. Default: text.',
     choices = ['json', 'text', 'csv'],
     required = False,
     default = None
+  )
+
+  parser.add_argument(
+    '--csv_file', '-csv_file',
+    action = env_default('CSV_FILE'),
+    help = 'Optional: CSV output file name.',
+    required = False,
+    default = 'vault_entity_alias_mount_mapping_output_' + str(now) + '.csv'
+  )
+
+  parser.add_argument(
+    '--json_file', '-json_file',
+    action = env_default('JSON_FILE'),
+    help = 'Optional: JSON output file name.',
+    required = False,
+    default = 'vault_entity_alias_mount_mapping_output_' + str(now) + '.json'
+  )
+
+  parser.add_argument(
+    '--text_file', '-text_file',
+    action = env_default('TEXT_FILE'),
+    help = 'Optional: text output file name.',
+    required = False,
+    default = 'vault_entity_alias_mount_mapping_output_' + str(now) + '.txt'
+  )
+
+  parser.add_argument(
+    '--stdout', '-stdout',
+    action = argparse.BooleanOptionalAction,
+    help = 'Optional: send output to STDOUT rather than to file',
+    required = False,
+    default = False
   )
 
   parser.add_argument(
@@ -224,6 +315,15 @@ if __name__ == '__main__':
     help = 'Optional: Log level. Default: INFO.',
     choices = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
     required = False
+  )
+
+  parser.add_argument(
+    '--start_time', '-start_time',
+    action = env_default('START_TIME'),
+    help = 'Optional: Start time in years from now. Default = 1y.',
+    choices = ['1y', '2y', '3y'],
+    required = False,
+    default = '1y'
   )
 
   parser.add_argument(
@@ -276,6 +376,10 @@ if __name__ == '__main__':
   else:
     logging.debug("Vault namespace not specified.")
 
+  start_years_ago = int(args.start_time[0])
+  start_time = now - (365 * 24 * 60 * 60 * start_years_ago)
+  logging.info('Start time: ' + str(args.start_time[0]) + ' years ago')
+
   # Vault Client
   try:
     client = hvac.Client(
@@ -290,7 +394,7 @@ if __name__ == '__main__':
   vault_version = health_check(
     hvac.Client(url = vault_addr)
   )
-  if vault_version.startswith('1.11'):
+  if vault_version >= LooseVersion(minimum_vault_version):
     active_entities = get_active_entities(vault_addr, vault_token) # we don't pass namespace because the Activity Export API appears to only work on the root namespace.
   else:
     active_entities = {}
@@ -365,12 +469,32 @@ if __name__ == '__main__':
         #print(child_namespace)
         #print("added " + child_namespace_id + " " + child_namespace_name)
 
-  if args.format == 'json':
-    print(json.dumps(output_list, indent = 2))
-  elif args.format == 'csv':
-    csv_writer = csv.writer(sys.stdout)
-    csv_writer.writerows(output_csv)
-  else: # elif args.format == 'text':
-    print(output_text)
+  if args.stdout or environ.get('RUNNING_IN_DOCKER'):
+    stdout = True
+  else:
+    stdout = False
 
+  if args.output == 'json':
+    if stdout:
+      print(json.dumps(output_list, indent = 2))
+    else:
+      with open(args.json_file, 'w', newline='') as jsonfile:
+        jsonfile.write(json.dumps(output_list, indent = 2))
+      logging.info('Output file is ' + args.json_file)
+  elif args.output == 'csv':
+    if stdout:
+      csv_writer = csv.writer(sys.stdout)
+      csv_writer.writerows(output_csv)
+    else:
+      with open(args.csv_file, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerows(output_csv)
+      logging.info('Output file is ' + args.csv_file)
+  else: # elif args.output == 'text':
+    if stdout:
+      print(output_text)
+    else:
+      with open(args.text_file, 'w', newline='') as textfile:
+        textfile.write(output_text)
+      logging.info('Output file is ' + args.text_file)
   sys.exit(0)
